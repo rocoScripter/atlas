@@ -44,7 +44,7 @@ local ThemeManager = {} do
 		local customThemeData = self:GetCustomTheme(theme)
 		local data = customThemeData or self.BuiltInThemes[theme]
 
-		if not data then return end
+		if not data then return false end
 
 		local scheme = data[2]
 		for idx, col in next, customThemeData or scheme do
@@ -56,6 +56,7 @@ local ThemeManager = {} do
 		end
 
 		self:ThemeUpdate()
+		return true
 	end
 
 	function ThemeManager:ThemeUpdate()
@@ -125,15 +126,39 @@ local ThemeManager = {} do
 				self.Library:Notify(string.format('Set "%s" as default theme', Options.ThemeManager_ThemeList.Value))
 			end
 		end)
+
+		groupbox:AddInput('ThemeManager_CustomThemeName', { Text = 'Custom theme name' })
+
+		local customThemes = self:ReloadCustomThemes()
+		groupbox:AddDropdown('ThemeManager_CustomThemeList', { Text = 'Custom themes', Values = customThemes, AllowNull = true })
+
+		Options.ThemeManager_CustomThemeList:OnChanged(function()
+			local themeName = Options.ThemeManager_CustomThemeList.Value
+			if themeName and themeName ~= '' then
+				local success = self:ApplyTheme(themeName)
+				if success then
+					self.Library:Notify(string.format('Applied custom theme %q', themeName))
+				end
+			end
+		end)
 		
-		groupbox:AddButton('Delete theme', function()
+		groupbox:AddButton('Save custom theme', function()
+			local name = Options.ThemeManager_CustomThemeName.Value
+			if not name or name:gsub(' ', '') == '' then
+				return self.Library:Notify('Invalid theme name (empty)', 2)
+			end
+
+			self:SaveCustomTheme(name)
+			self.Library:Notify(string.format('Saved custom theme %q', name))
+			Options.ThemeManager_CustomThemeList:SetValues(self:ReloadCustomThemes())
+			Options.ThemeManager_CustomThemeList:SetValue(nil)
+		end):AddButton('Delete theme', function()
 			if Options.ThemeManager_CustomThemeList.Value ~= nil and Options.ThemeManager_CustomThemeList.Value ~= '' then
 				local path = self.Folder .. '/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
 				if isfile(path) then
 					delfile(path)
 					self.Library:Notify(string.format('Deleted theme %q', Options.ThemeManager_CustomThemeList.Value))
-					Options.ThemeManager_CustomThemeList.Values = self:ReloadCustomThemes()
-					Options.ThemeManager_CustomThemeList:SetValues()
+					Options.ThemeManager_CustomThemeList:SetValues(self:ReloadCustomThemes())
 					Options.ThemeManager_CustomThemeList:SetValue(nil)
 				end
 			end
