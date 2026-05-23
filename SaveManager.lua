@@ -211,7 +211,7 @@ local SaveManager = {} do
 		section:AddButton('Create config', function()
 			local name = Options.SaveManager_ConfigName.Value
 
-			if name:gsub(' ', '') == '' then 
+			if name:gsub(' ', '') == '' then
 				return self.Library:Notify('Invalid config name (empty)', 2)
 			end
 
@@ -244,18 +244,97 @@ local SaveManager = {} do
 			end
 
 			self.Library:Notify(string.format('Overwrote config %q', name))
+		end):AddButton('Delete config', function()
+			local name = Options.SaveManager_ConfigList.Value
+			if not name then
+				return self.Library:Notify('No config selected', 2)
+			end
+
+			local path = self.Folder .. '/settings/' .. name .. '.json'
+			if isfile(path) then
+				delfile(path)
+				self.Library:Notify(string.format('Deleted config %q', name))
+				Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+				Options.SaveManager_ConfigList:SetValue(nil)
+			end
 		end)
 
-		section:AddButton('Refresh list', function()
+		section:AddButton('Rename config', function()
+			local oldName = Options.SaveManager_ConfigList.Value
+			local newName = Options.SaveManager_ConfigName.Value
+
+			if not oldName then
+				return self.Library:Notify('No config selected', 2)
+			end
+			if newName:gsub(' ', '') == '' then
+				return self.Library:Notify('Invalid new name (empty)', 2)
+			end
+
+			local oldPath = self.Folder .. '/settings/' .. oldName .. '.json'
+			local newPath = self.Folder .. '/settings/' .. newName .. '.json'
+			if isfile(oldPath) then
+				local content = readfile(oldPath)
+				writefile(newPath, content)
+				delfile(oldPath)
+				self.Library:Notify(string.format('Renamed config %q to %q', oldName, newName))
+				Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+				Options.SaveManager_ConfigList:SetValue(nil)
+			end
+		end):AddButton('Duplicate config', function()
+			local name = Options.SaveManager_ConfigList.Value
+			local dupName = Options.SaveManager_ConfigName.Value
+
+			if not name then
+				return self.Library:Notify('No config selected', 2)
+			end
+			if dupName:gsub(' ', '') == '' then
+				return self.Library:Notify('Invalid duplicate name (empty)', 2)
+			end
+
+			local path = self.Folder .. '/settings/' .. name .. '.json'
+			local dupPath = self.Folder .. '/settings/' .. dupName .. '.json'
+			if isfile(path) then
+				local content = readfile(path)
+				writefile(dupPath, content)
+				self.Library:Notify(string.format('Duplicated config %q to %q', name, dupName))
+				Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+				Options.SaveManager_ConfigList:SetValue(nil)
+			end
+		end)
+
+		section:AddButton('Config info', function()
+			local name = Options.SaveManager_ConfigList.Value
+			if not name then
+				return self.Library:Notify('No config selected', 2)
+			end
+
+			local path = self.Folder .. '/settings/' .. name .. '.json'
+			if isfile(path) then
+				local content = readfile(path)
+				local success, decoded = pcall(httpService.JSONDecode, httpService, content)
+				if success and decoded then
+					local count = #decoded.objects
+					self.Library:Notify(string.format('Config %q has %d saved objects', name, count))
+				else
+					self.Library:Notify('Failed to read config info')
+				end
+			end
+		end):AddButton('Refresh list', function()
 			Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
 			Options.SaveManager_ConfigList:SetValue(nil)
 		end)
 
-		section:AddButton('Set as autoload', function()
+		section:AddButton('Pin as autoload', function()
 			local name = Options.SaveManager_ConfigList.Value
 			writefile(self.Folder .. '/settings/autoload.txt', name)
 			SaveManager.AutoloadLabel:SetText('Current autoload config: ' .. name)
 			self.Library:Notify(string.format('Set %q to auto load', name))
+		end):AddButton('Clear autoload', function()
+			if isfile(self.Folder .. '/settings/autoload.txt') then
+				delfile(self.Folder .. '/settings/autoload.txt')
+			end
+			SaveManager.AutoloadLabel:SetText('Current autoload config: none')
+			self.Library:Notify('Cleared autoload config')
 		end)
 
 		SaveManager.AutoloadLabel = section:AddLabel('Current autoload config: none', true)
