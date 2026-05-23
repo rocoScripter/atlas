@@ -99,7 +99,6 @@ local ThemeManager = {} do
 	end
 
 	function ThemeManager:CreateThemeManager(groupbox)
-        groupbox:AddDivider()
 		groupbox:AddLabel('Background color'):AddColorPicker('BackgroundColor', { Default = self.Library.BackgroundColor });
 		groupbox:AddLabel('Main color')	:AddColorPicker('MainColor', { Default = self.Library.MainColor });
 		groupbox:AddLabel('Accent color'):AddColorPicker('AccentColor', { Default = self.Library.AccentColor });
@@ -116,40 +115,62 @@ local ThemeManager = {} do
 		groupbox:AddDivider()
 		groupbox:AddDropdown('ThemeManager_ThemeList', { Text = 'Theme list', Values = ThemesArray, Default = 1 })
 
-		groupbox:AddButton('Set as default', function()
-			self:SaveDefault(Options.ThemeManager_ThemeList.Value)
-			self.Library:Notify(string.format('Set default theme to %q', Options.ThemeManager_ThemeList.Value))
-		end)
-
 		Options.ThemeManager_ThemeList:OnChanged(function()
 			self:ApplyTheme(Options.ThemeManager_ThemeList.Value)
 		end)
 
-		groupbox:AddDivider()
-		groupbox:AddDropdown('ThemeManager_CustomThemeList', { Text = 'Custom themes', Values = self:ReloadCustomThemes(), AllowNull = true, Default = 1 })
-		groupbox:AddInput('ThemeManager_CustomThemeName', { Text = 'Custom theme name' })
-
-		groupbox:AddButton('Load theme', function() 
-			self:ApplyTheme(Options.ThemeManager_CustomThemeList.Value) 
-		end):AddButton('Save theme', function() 
-			self:SaveCustomTheme(Options.ThemeManager_CustomThemeName.Value)
-
-			Options.ThemeManager_CustomThemeList.Values = self:ReloadCustomThemes()
-			Options.ThemeManager_CustomThemeList:SetValues()
-			Options.ThemeManager_CustomThemeList:SetValue(nil)
-		end)
-
-		groupbox:AddButton('Refresh list', function()
-			Options.ThemeManager_CustomThemeList.Values = self:ReloadCustomThemes()
-			Options.ThemeManager_CustomThemeList:SetValues()
-			Options.ThemeManager_CustomThemeList:SetValue(nil)
-		end)
-
-		groupbox:AddButton('Set as default', function()
+		groupbox:AddButton('Delete theme', function()
 			if Options.ThemeManager_CustomThemeList.Value ~= nil and Options.ThemeManager_CustomThemeList.Value ~= '' then
-				self:SaveDefault(Options.ThemeManager_CustomThemeList.Value)
-				self.Library:Notify(string.format('Set default theme to %q', Options.ThemeManager_CustomThemeList.Value))
+				local path = self.Folder .. '/themes/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
+				if isfile(path) then
+					delfile(path)
+					self.Library:Notify(string.format('Deleted theme %q', Options.ThemeManager_CustomThemeList.Value))
+					Options.ThemeManager_CustomThemeList.Values = self:ReloadCustomThemes()
+					Options.ThemeManager_CustomThemeList:SetValues()
+					Options.ThemeManager_CustomThemeList:SetValue(nil)
+				end
 			end
+		end)
+
+		groupbox:AddDivider()
+		groupbox:AddButton('Export to clipboard', function()
+			local theme = {}
+			local fields = { "FontColor", "MainColor", "AccentColor", "BackgroundColor", "OutlineColor" }
+			for _, field in next, fields do
+				theme[field] = Options[field].Value:ToHex()
+			end
+			setclipboard(httpService:JSONEncode(theme))
+			self.Library:Notify('Exported theme to clipboard')
+		end)
+
+		groupbox:AddButton('Import from clipboard', function()
+			local success, decoded = pcall(function()
+				return httpService:JSONDecode(getclipboard())
+			end)
+			if success and decoded then
+				for _, field in next, { "FontColor", "MainColor", "AccentColor", "BackgroundColor", "OutlineColor" } do
+					if decoded[field] then
+						Options[field]:SetValueRGB(Color3.fromHex(decoded[field]))
+					end
+				end
+				self:ThemeUpdate()
+				self.Library:Notify('Imported theme from clipboard')
+			else
+				self.Library:Notify('Failed to import theme from clipboard')
+			end
+		end)
+
+		groupbox:AddButton('Generate random theme', function()
+			local function randomColor()
+				return Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+			end
+			Options.BackgroundColor:SetValueRGB(randomColor())
+			Options.MainColor:SetValueRGB(randomColor())
+			Options.AccentColor:SetValueRGB(randomColor())
+			Options.OutlineColor:SetValueRGB(randomColor())
+			Options.FontColor:SetValueRGB(randomColor())
+			self:ThemeUpdate()
+			self.Library:Notify('Generated random theme')
 		end)
 
 		ThemeManager:LoadDefault()
