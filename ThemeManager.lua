@@ -73,7 +73,7 @@ local ThemeManager = {} do
 
 	function ThemeManager:LoadDefault()		
 		local theme = 'Default'
-		local content = isfile(self.Folder .. '/themes/default.txt') and readfile(self.Folder .. '/themes/default.txt')
+		local content = isfile(self.Folder .. '/default.txt') and readfile(self.Folder .. '/default.txt')
 
 		local isDefault = true
 		if content then
@@ -95,7 +95,7 @@ local ThemeManager = {} do
 	end
 
 	function ThemeManager:SaveDefault(theme)
-		writefile(self.Folder .. '/themes/default.txt', theme)
+		writefile(self.Folder .. '/default.txt', theme)
 	end
 
 	function ThemeManager:CreateThemeManager(groupbox)
@@ -128,7 +128,7 @@ local ThemeManager = {} do
 		
 		groupbox:AddButton('Delete theme', function()
 			if Options.ThemeManager_CustomThemeList.Value ~= nil and Options.ThemeManager_CustomThemeList.Value ~= '' then
-				local path = self.Folder .. '/themes/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
+				local path = self.Folder .. '/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
 				if isfile(path) then
 					delfile(path)
 					self.Library:Notify(string.format('Deleted theme %q', Options.ThemeManager_CustomThemeList.Value))
@@ -194,7 +194,7 @@ local ThemeManager = {} do
 	end
 
 	function ThemeManager:GetCustomTheme(file)
-		local path = self.Folder .. '/themes/' .. file
+		local path = self.Folder .. '/' .. file
 		if not isfile(path) then
 			return nil
 		end
@@ -221,11 +221,11 @@ local ThemeManager = {} do
 			theme[field] = Options[field].Value:ToHex()
 		end
 
-		writefile(self.Folder .. '/themes/' .. file .. '.json', httpService:JSONEncode(theme))
+		writefile(self.Folder .. '/' .. file .. '.json', httpService:JSONEncode(theme))
 	end
 
 	function ThemeManager:ReloadCustomThemes()
-		local list = listfiles(self.Folder .. '/themes')
+		local list = listfiles(self.Folder .. '/')
 
 		local out = {}
 		for i = 1, #list do
@@ -265,7 +265,7 @@ local ThemeManager = {} do
 			paths[#paths + 1] = table.concat(parts, '/', 1, idx)
 		end
 
-		table.insert(paths, self.Folder .. '/themes')
+		table.insert(paths, self.Folder .. '/')
 
 		for i = 1, #paths do
 			local str = paths[i]
