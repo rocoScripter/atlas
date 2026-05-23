@@ -1,4 +1,4 @@
-local httpService = game:GetService('HttpService')
+local httpService = cloneref(game:GetService('HttpService'))
 
 local SaveManager = {} do
 	SaveManager.Folder = 'LinoriaLibSettings'
@@ -83,7 +83,7 @@ local SaveManager = {} do
 			return false, 'no config file is selected'
 		end
 
-		local fullPath = self.Folder .. '/settings/' .. name .. '.json'
+		local fullPath = self.Folder .. '/' .. name .. '.json'
 
 		local data = {
 			objects = {}
@@ -116,7 +116,7 @@ local SaveManager = {} do
 			return false, 'no config file is selected'
 		end
 		
-		local file = self.Folder .. '/settings/' .. name .. '.json'
+		local file = self.Folder .. '/' .. name .. '.json'
 		if not isfile(file) then return false, 'invalid file' end
 
 		local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
@@ -140,9 +140,7 @@ local SaveManager = {} do
 
 	function SaveManager:BuildFolderTree()
 		local paths = {
-			self.Folder,
-			self.Folder .. '/themes',
-			self.Folder .. '/settings'
+			self.Folder
 		}
 
 		for i = 1, #paths do
@@ -154,7 +152,7 @@ local SaveManager = {} do
 	end
 
 	function SaveManager:RefreshConfigList()
-		local list = listfiles(self.Folder .. '/settings')
+		local list = listfiles(self.Folder)
 
 		local out = {}
 		for i = 1, #list do
@@ -185,8 +183,8 @@ local SaveManager = {} do
 	end
 
 	function SaveManager:LoadAutoloadConfig()
-		if isfile(self.Folder .. '/settings/autoload.txt') then
-			local name = readfile(self.Folder .. '/settings/autoload.txt')
+		if isfile(self.Folder .. '/autoload.txt') then
+			local name = readfile(self.Folder .. '/autoload.txt')
 
 			local success, err = self:Load(name)
 			if not success then
@@ -250,7 +248,7 @@ local SaveManager = {} do
 				return self.Library:Notify('No config selected', 2)
 			end
 
-			local path = self.Folder .. '/settings/' .. name .. '.json'
+			local path = self.Folder .. '/' .. name .. '.json'
 			if isfile(path) then
 				delfile(path)
 				self.Library:Notify(string.format('Deleted config %q', name))
@@ -270,8 +268,8 @@ local SaveManager = {} do
 				return self.Library:Notify('Invalid new name (empty)', 2)
 			end
 
-			local oldPath = self.Folder .. '/settings/' .. oldName .. '.json'
-			local newPath = self.Folder .. '/settings/' .. newName .. '.json'
+			local oldPath = self.Folder .. '/' .. oldName .. '.json'
+			local newPath = self.Folder .. '/' .. newName .. '.json'
 			if isfile(oldPath) then
 				local content = readfile(oldPath)
 				writefile(newPath, content)
@@ -291,8 +289,8 @@ local SaveManager = {} do
 				return self.Library:Notify('Invalid duplicate name (empty)', 2)
 			end
 
-			local path = self.Folder .. '/settings/' .. name .. '.json'
-			local dupPath = self.Folder .. '/settings/' .. dupName .. '.json'
+			local path = self.Folder .. '/' .. name .. '.json'
+			local dupPath = self.Folder .. '/' .. dupName .. '.json'
 			if isfile(path) then
 				local content = readfile(path)
 				writefile(dupPath, content)
@@ -308,7 +306,7 @@ local SaveManager = {} do
 				return self.Library:Notify('No config selected', 2)
 			end
 
-			local path = self.Folder .. '/settings/' .. name .. '.json'
+			local path = self.Folder .. '/' .. name .. '.json'
 			if isfile(path) then
 				local content = readfile(path)
 				local success, decoded = pcall(httpService.JSONDecode, httpService, content)
@@ -326,12 +324,12 @@ local SaveManager = {} do
 
 		section:AddButton('Pin as autoload', function()
 			local name = Options.SaveManager_ConfigList.Value
-			writefile(self.Folder .. '/settings/autoload.txt', name)
+			writefile(self.Folder .. '/autoload.txt', name)
 			SaveManager.AutoloadLabel:SetText('Current autoload config: ' .. name)
 			self.Library:Notify(string.format('Set %q to auto load', name))
 		end):AddButton('Clear autoload', function()
-			if isfile(self.Folder .. '/settings/autoload.txt') then
-				delfile(self.Folder .. '/settings/autoload.txt')
+			if isfile(self.Folder .. '/autoload.txt') then
+				delfile(self.Folder .. '/autoload.txt')
 			end
 			SaveManager.AutoloadLabel:SetText('Current autoload config: none')
 			self.Library:Notify('Cleared autoload config')
@@ -339,8 +337,8 @@ local SaveManager = {} do
 
 		SaveManager.AutoloadLabel = section:AddLabel('Current autoload config: none', true)
 
-		if isfile(self.Folder .. '/settings/autoload.txt') then
-			local name = readfile(self.Folder .. '/settings/autoload.txt')
+		if isfile(self.Folder .. '/autoload.txt') then
+			local name = readfile(self.Folder .. '/autoload.txt')
 			SaveManager.AutoloadLabel:SetText('Current autoload config: ' .. name)
 		end
 
