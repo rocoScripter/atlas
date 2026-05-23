@@ -131,18 +131,18 @@ local ThemeManager = {} do
 
 		local customThemes = self:ReloadCustomThemes()
 		groupbox:AddDropdown('ThemeManager_CustomThemeList', { Text = 'Custom themes', Values = customThemes, AllowNull = true })
-
-		Options.ThemeManager_CustomThemeList:OnChanged(function()
-			local themeName = Options.ThemeManager_CustomThemeList.Value
-			if themeName and themeName ~= '' then
-				local success = self:ApplyTheme(themeName)
-				if success then
-					self.Library:Notify(string.format('Applied custom theme %q', themeName))
-				end
-			end
-		end)
 		
-		groupbox:AddButton('Save custom theme', function()
+		groupbox:AddButton('Load custom theme', function()
+			local themeName = Options.ThemeManager_CustomThemeList.Value
+			if not themeName or themeName == '' then
+				return self.Library:Notify('No custom theme selected', 2)
+			end
+
+			local success = self:ApplyTheme(themeName)
+			if success then
+				self.Library:Notify(string.format('Loaded custom theme %q', themeName))
+			end
+		end):AddButton('Save custom theme', function()
 			local name = Options.ThemeManager_CustomThemeName.Value
 			if not name or name:gsub(' ', '') == '' then
 				return self.Library:Notify('Invalid theme name (empty)', 2)
@@ -152,7 +152,9 @@ local ThemeManager = {} do
 			self.Library:Notify(string.format('Saved custom theme %q', name))
 			Options.ThemeManager_CustomThemeList:SetValues(self:ReloadCustomThemes())
 			Options.ThemeManager_CustomThemeList:SetValue(nil)
-		end):AddButton('Delete theme', function()
+		end)
+
+		groupbox:AddButton('Delete theme', function()
 			if Options.ThemeManager_CustomThemeList.Value ~= nil and Options.ThemeManager_CustomThemeList.Value ~= '' then
 				local path = self.Folder .. '/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
 				if isfile(path) then
