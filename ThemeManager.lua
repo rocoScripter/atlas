@@ -114,11 +114,18 @@ local ThemeManager = {} do
 
 		groupbox:AddDivider()
 		groupbox:AddDropdown('ThemeManager_ThemeList', { Text = 'Theme list', Values = ThemesArray, Default = 1 })
-
-		Options.ThemeManager_ThemeList:OnChanged(function()
+		
+			Options.ThemeManager_ThemeList:OnChanged(function()
 			self:ApplyTheme(Options.ThemeManager_ThemeList.Value)
+			end)
+		
+		groupbox:AddButton('Set as default', function()
+			if Options.ThemeManager_ThemeList.Value then
+				self:SaveDefault(Options.ThemeManager_ThemeList.Value)
+				self.Library:Notify(string.format('Set "%s" as default theme', Options.ThemeManager_ThemeList.Value))
+			end
 		end)
-
+		
 		groupbox:AddButton('Delete theme', function()
 			if Options.ThemeManager_CustomThemeList.Value ~= nil and Options.ThemeManager_CustomThemeList.Value ~= '' then
 				local path = self.Folder .. '/themes/' .. Options.ThemeManager_CustomThemeList.Value .. '.json'
