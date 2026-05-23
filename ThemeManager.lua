@@ -266,7 +266,6 @@ local ThemeManager = {} do
 		end
 
 		table.insert(paths, self.Folder .. '/themes')
-		table.insert(paths, self.Folder .. '/settings')
 
 		for i = 1, #paths do
 			local str = paths[i]
