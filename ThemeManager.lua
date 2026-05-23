@@ -219,7 +219,7 @@ local ThemeManager = {} do
 	end
 
 	function ThemeManager:GetCustomTheme(file)
-		local path = self.Folder .. '/' .. file
+		local path = self.Folder .. '/' .. file .. '.json'
 		if not isfile(path) then
 			return nil
 		end
@@ -267,7 +267,10 @@ local ThemeManager = {} do
 				end
 
 				if char == '/' or char == '\\' then
-					table.insert(out, file:sub(pos + 1))
+					-- Strip the .json extension for display
+					local name = file:sub(pos + 1)
+					name = name:sub(1, -6) -- Remove '.json'
+					table.insert(out, name)
 				end
 			end
 		end
