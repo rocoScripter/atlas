@@ -280,24 +280,30 @@ local SaveManager = {} do
 			end
 		end):AddButton('Duplicate config', function()
 			local name = Options.SaveManager_ConfigList.Value
-			local dupName = Options.SaveManager_ConfigName.Value
 
 			if not name then
 				return self.Library:Notify('No config selected', 2)
 			end
-			if dupName:gsub(' ', '') == '' then
-				return self.Library:Notify('Invalid duplicate name (empty)', 2)
-			end
 
 			local path = self.Folder .. '/' .. name .. '.json'
-			local dupPath = self.Folder .. '/' .. dupName .. '.json'
-			if isfile(path) then
-				local content = readfile(path)
-				writefile(dupPath, content)
-				self.Library:Notify(string.format('Duplicated config %q to %q', name, dupName))
-				Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
-				Options.SaveManager_ConfigList:SetValue(nil)
+			if not isfile(path) then
+				return self.Library:Notify('Config file not found', 2)
 			end
+
+			-- Generate a unique duplicate name
+			local dupName
+			local counter = 1
+			repeat
+				dupName = name .. ' (' .. counter .. ')'
+				counter = counter + 1
+			until not isfile(self.Folder .. '/' .. dupName .. '.json')
+
+			local dupPath = self.Folder .. '/' .. dupName .. '.json'
+			local content = readfile(path)
+			writefile(dupPath, content)
+			self.Library:Notify(string.format('Duplicated config %q to %q', name, dupName))
+			Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+			Options.SaveManager_ConfigList:SetValue(nil)
 		end)
 
 		section:AddButton('Config info', function()
