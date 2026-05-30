@@ -1315,8 +1315,26 @@ Library:Create(DisplayInner, {
 
         assert(Info.Default, 'AddKeyPicker: Missing default value.');
 
+        local function NormalizeKey(Key)
+            return type(Key) == 'string' and Key:lower() or Key;
+        end;
+
+        local function GetKeyCode(Key)
+            if type(Key) ~= 'string' then
+                return nil;
+            end;
+
+            for _, KeyCode in next, Enum.KeyCode:GetEnumItems() do
+                if KeyCode.Name:lower() == Key:lower() then
+                    return KeyCode;
+                end;
+            end;
+
+            return nil;
+        end;
+
         local KeyPicker = {
-            Value = Info.Default;
+            Value = NormalizeKey(Info.Default);
             Toggled = false;
             Mode = Info.Mode or 'Toggle'; -- Always, Toggle, Hold
             Type = 'KeyPicker';
@@ -1361,7 +1379,7 @@ Library:Create(DisplayInner, {
         local DisplayLabel = Library:CreateLabel({
             Size = UDim2.new(1, 0, 1, 0);
             TextSize = 13;
-            Text = Info.Default;
+            Text = NormalizeKey(Info.Default);
             TextWrapped = true;
             ZIndex = 8;
             Parent = PickInner;
@@ -1498,17 +1516,18 @@ function KeyPicker:Update()
             if KeyPicker.Mode == 'Always' then
                 return true;
             elseif KeyPicker.Mode == 'Hold' then
-                if KeyPicker.Value == 'None' then
+                if KeyPicker.Value == 'none' then
                     return false;
                 end
 
                 local Key = KeyPicker.Value;
 
-                if Key == 'MB1' or Key == 'MB2' then
-                    return Key == 'MB1' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-                        or Key == 'MB2' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2);
+                if Key == 'mb1' or Key == 'mb2' then
+                    return Key == 'mb1' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+                        or Key == 'mb2' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2);
                 else
-                    return InputService:IsKeyDown(Enum.KeyCode[KeyPicker.Value]);
+                    local KeyCode = GetKeyCode(Key);
+                    return KeyCode and InputService:IsKeyDown(KeyCode);
                 end;
             else
                 return KeyPicker.Toggled;
@@ -1516,7 +1535,7 @@ function KeyPicker:Update()
         end;
 
         function KeyPicker:SetValue(Data)
-            local Key, Mode = Data[1], Data[2];
+            local Key, Mode = NormalizeKey(Data[1]), Data[2];
             DisplayLabel.Text = Key;
             KeyPicker.Value = Key;
             ModeButtons[Mode]:Select();
@@ -1576,11 +1595,11 @@ function KeyPicker:Update()
                     local Key;
 
                     if Input.UserInputType == Enum.UserInputType.Keyboard then
-                        Key = Input.KeyCode.Name;
+                        Key = NormalizeKey(Input.KeyCode.Name);
                     elseif Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        Key = 'MB1';
+                        Key = 'mb1';
                     elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
-                        Key = 'MB2';
+                        Key = 'mb2';
                     end;
 
                     Break = true;
@@ -1606,14 +1625,14 @@ function KeyPicker:Update()
                 if KeyPicker.Mode == 'Toggle' then
                     local Key = KeyPicker.Value;
 
-                    if Key == 'MB1' or Key == 'MB2' then
-                        if Key == 'MB1' and Input.UserInputType == Enum.UserInputType.MouseButton1
-                        or Key == 'MB2' and Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    if Key == 'mb1' or Key == 'mb2' then
+                        if Key == 'mb1' and Input.UserInputType == Enum.UserInputType.MouseButton1
+                        or Key == 'mb2' and Input.UserInputType == Enum.UserInputType.MouseButton2 then
                             KeyPicker.Toggled = not KeyPicker.Toggled
                             KeyPicker:DoClick()
                         end;
                     elseif Input.UserInputType == Enum.UserInputType.Keyboard then
-                        if Input.KeyCode.Name == Key then
+                        if Input.KeyCode.Name:lower() == Key then
                             KeyPicker.Toggled = not KeyPicker.Toggled;
                             KeyPicker:DoClick()
                         end;
@@ -4821,7 +4840,7 @@ end;
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
-            if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Library.ToggleKeybind.Value then
+            if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name:lower() == Library.ToggleKeybind.Value then
                 task.spawn(Library.Toggle)
             end
         elseif Input.KeyCode == Enum.KeyCode.RightControl or (Input.KeyCode == Enum.KeyCode.RightShift and (not Processed)) then
