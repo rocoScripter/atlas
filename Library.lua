@@ -4565,10 +4565,12 @@ Library:AddToRegistry(Button, {
                 });
 
                 local ButtonLabel = Library:CreateLabel({
+                    Position = UDim2.new(0, 0, 0, 0);
                     Size = UDim2.new(1, 0, 1, 0);
                     TextSize = 14;
                     Text = Name;
                     TextXAlignment = Enum.TextXAlignment.Center;
+                    TextYAlignment = Enum.TextYAlignment.Center;
                     ZIndex = 7;
                     Parent = Button;
                 });
