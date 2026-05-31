@@ -31,10 +31,10 @@ local Library = {
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
-    MainColor = Color3.fromRGB(14, 12, 12);
-    BackgroundColor = Color3.fromRGB(14, 12, 12);
+    MainColor = Color3.fromRGB(15, 15, 15);
+    BackgroundColor = Color3.fromRGB(18, 18, 18);
     AccentColor = Color3.fromRGB(0, 85, 255);
-    OutlineColor = Color3.fromRGB(26, 21, 21);
+    OutlineColor = Color3.fromRGB(46, 46, 46);
     RiskColor = Color3.fromRGB(255, 50, 50),
 
     Black = Color3.new(0, 0, 0);
@@ -43,8 +43,8 @@ local Library = {
     -- Glow effect settings
     GlowEnabled = true;
     GlowColor = Color3.fromRGB(0, 85, 255);
-    GlowTransparency = 0.5;
-    GlowSize = 40;
+    GlowTransparency = 0.45;
+    GlowSize = 36;
     GlowColorMatchAccent = true;
 
     OpenedFrames = {};
@@ -3973,7 +3973,7 @@ function Library:CreateWindow(...)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
-        BackgroundColor3 = Color3.new(0, 0, 0);
+        BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
         Position = Config.Position,
         Size = Config.Size,
@@ -4085,6 +4085,10 @@ ResizeRight.InputBegan:Connect(function(Input)
     end;
 end);
 
+    Library:AddToRegistry(Outer, {
+        BackgroundColor3 = 'AccentColor';
+    });
+
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.AccentColor;
@@ -4102,7 +4106,7 @@ end);
 
 local WindowLabel = Library:CreateLabel({
     Position = UDim2.new(0, 0, 0, 0);
-    Size = UDim2.new(1, 0, 0, 25);
+    Size = UDim2.new(1, 0, 0, 24);
     Text = '';
     TextXAlignment = Enum.TextXAlignment.Center;
     ZIndex = 1;
@@ -4114,7 +4118,7 @@ Library:AddToRegistry(WindowLabel, {
 });
 
 local AnimatedTitle = {
-    Enabled = true,
+    Enabled = Config.AnimatedTitle == true,
     Speed = 0.08,
     FullText = Config.Title or '',
     CurrentIndex = 0,
@@ -4177,8 +4181,8 @@ AnimatedTitle:Start()
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 25);
-        Size = UDim2.new(1, -16, 1, -33);
+        Position = UDim2.new(0, 8, 0, 26);
+        Size = UDim2.new(1, -16, 1, -34);
         ZIndex = 1;
         Parent = Inner;
     });
@@ -4204,8 +4208,8 @@ AnimatedTitle:Start()
 
 local TabArea = Library:Create('Frame', {
     BackgroundTransparency = 1;
-    Position = UDim2.new(0, 8, 0, 4);
-    Size = UDim2.new(1, -16, 0, 21);
+    Position = UDim2.new(0, 8, 0, 5);
+    Size = UDim2.new(1, -16, 0, 22);
     ZIndex = 1;
     Parent = MainSectionInner;
 });
@@ -4220,8 +4224,8 @@ local TabArea = Library:Create('Frame', {
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 30);
-        Size = UDim2.new(1, -16, 1, -38);
+        Position = UDim2.new(0, 8, 0, 31);
+        Size = UDim2.new(1, -16, 1, -39);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -4406,16 +4410,6 @@ end;
                 BackgroundColor3 = 'BackgroundColor';
                 BorderColor3 = 'OutlineColor';
             });
-
-            Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 4);
-            Parent = BoxOuter;
-        });
-
-            Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 4);
-            Parent = BoxOuter;
-        });
 
             local BoxInner = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
