@@ -2223,6 +2223,20 @@ function Button:AddButton(...)
             Parent = ToggleOuter;
         });
 
+        local function UpdateToggleRowWidth()
+            local Width = Container.AbsoluteSize.X;
+
+            if Width <= 0 then
+                return;
+            end;
+
+            ToggleLabel.Size = UDim2.new(0, math.max(Width - 23, 216), 1, 0);
+            ToggleRegion.Size = UDim2.new(0, math.max(Width, 170), 1, 0);
+        end;
+
+        UpdateToggleRowWidth();
+        Container:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdateToggleRowWidth);
+
         Library:OnHighlight(ToggleRegion, ToggleOuter,
             { BorderColor3 = 'AccentColor' },
             { BorderColor3 = 'Black' }
