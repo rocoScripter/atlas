@@ -11,10 +11,18 @@ local Mouse = LocalPlayer:GetMouse();
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
 
+pcall(function()
+    local ExistingGui = CoreGui:FindFirstChild('LinoriaUI');
+    if ExistingGui then
+        ExistingGui:Destroy();
+    end;
+end);
+
 local ScreenGui = Instance.new('ScreenGui');
 ProtectGui(ScreenGui);
 
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+ScreenGui.DisplayOrder = 999999;
 ScreenGui.Parent = CoreGui;
 ScreenGui.Name = 'LinoriaUI'
 
@@ -3695,10 +3703,11 @@ end;
 -- < Create other UI elements >
 do
     Library.NotificationArea = Library:Create('Frame', {
+        Name = 'AtlasNotifications';
         BackgroundTransparency = 1;
         Position = UDim2.fromScale(0, 0);
         Size = UDim2.fromScale(1, 1);
-        ZIndex = 100;
+        ZIndex = 10000;
         Parent = ScreenGui;
     });
     Library.Notifications = {};
@@ -3924,8 +3933,9 @@ end;
 
 function Library:UpdateNotifications()
     local Notifications = Library.Notifications or {};
-    local BaseX = 70;
-    local BaseY = 20;
+    local BaseX = 29;
+    local BaseY = 21;
+    local Gap = 44;
 
     if #Notifications > 6 then
         Notifications[1]:Dismiss();
@@ -3933,7 +3943,7 @@ function Library:UpdateNotifications()
 
     for Idx, Notification in ipairs(Notifications) do
         if Notification.Active and Notification.Frame then
-            local TargetPosition = UDim2.fromOffset(BaseX, BaseY + ((Idx - 1) * 46));
+            local TargetPosition = UDim2.fromOffset(BaseX, BaseY + ((Idx - 1) * Gap));
 
             TweenService:Create(Notification.Frame, TweenInfo.new(0.14, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
                 Position = TargetPosition
@@ -3969,33 +3979,35 @@ function Library:Notify(Text, TypeOrTime, Time)
 
     Duration = math.clamp(Duration, 0.5, 7);
 
-    local TextWidth = Library:GetTextBounds(Text, Enum.Font.GothamBold, 13);
-    local Width = math.max(150, TextWidth + 44);
-    local Height = 38;
+    local TextWidth = Library:GetTextBounds(Text, Enum.Font.GothamBold, 12);
+    local Width = math.clamp(TextWidth + 43, 158, 320);
+    local Height = 39;
 
     local Frame = Library:Create('Frame', {
-        BackgroundColor3 = Color3.fromRGB(8, 10, 14);
+        Name = 'AtlasNotification';
+        BackgroundColor3 = Color3.fromRGB(7, 10, 15);
         BackgroundTransparency = 1;
         BorderSizePixel = 0;
         ClipsDescendants = true;
-        Position = UDim2.fromOffset(50, 20);
+        Position = UDim2.fromOffset(9, 21);
         Size = UDim2.fromOffset(Width, Height);
-        ZIndex = 1101;
+        ZIndex = 10001;
         Parent = Library.NotificationArea;
     });
 
     Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 6);
+        CornerRadius = UDim.new(0, 7);
         Parent = Frame;
     });
 
     local Dot = Library:Create('Frame', {
-        BackgroundColor3 = Color3.fromRGB(91, 161, 255);
+        Name = 'Dot';
+        BackgroundColor3 = Color3.fromRGB(88, 151, 255);
         BackgroundTransparency = 1;
         BorderSizePixel = 0;
         Position = UDim2.fromOffset(14, 17);
-        Size = UDim2.fromOffset(5, 5);
-        ZIndex = 1102;
+        Size = UDim2.fromOffset(4, 4);
+        ZIndex = 10002;
         Parent = Frame;
     });
 
@@ -4005,18 +4017,19 @@ function Library:Notify(Text, TypeOrTime, Time)
     });
 
     local Label = Library:Create('TextLabel', {
+        Name = 'Message';
         BackgroundTransparency = 1;
         Font = Enum.Font.GothamBold;
-        Position = UDim2.fromOffset(30, 0);
-        Size = UDim2.new(1, -40, 1, 0);
+        Position = UDim2.fromOffset(31, 0);
+        Size = UDim2.new(1, -39, 1, 0);
         Text = Text;
         TextTransparency = 1;
-        TextColor3 = Color3.fromRGB(235, 238, 244);
-        TextSize = 13;
+        TextColor3 = Color3.fromRGB(238, 241, 246);
+        TextSize = 12;
         TextXAlignment = Enum.TextXAlignment.Left;
         TextYAlignment = Enum.TextYAlignment.Center;
         TextTruncate = Enum.TextTruncate.AtEnd;
-        ZIndex = 1102;
+        ZIndex = 10002;
         Parent = Frame;
     });
 
