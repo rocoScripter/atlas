@@ -3956,7 +3956,7 @@ function Library:CreateWindow(...)
     end
 
     if type(Config.Title) ~= 'string' then Config.Title = 'No title' end
-    if type(Config.TabPadding) ~= 'number' then Config.TabPadding = 0 end
+    if type(Config.TabPadding) ~= 'number' then Config.TabPadding = 6 end
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
@@ -4114,11 +4114,11 @@ local WindowLabel = Library:CreateLabel({
 });
 
 Library:AddToRegistry(WindowLabel, {
-    TextColor3 = 'AccentColor';
+    TextColor3 = 'FontColor';
 });
 
 local AnimatedTitle = {
-    Enabled = Config.AnimatedTitle == true,
+    Enabled = Config.AnimatedTitle ~= false,
     Speed = 0.08,
     FullText = Config.Title or '',
     CurrentIndex = 0,
@@ -4252,12 +4252,13 @@ end;
             Tabboxes = {};
         };
 
-        local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 16);
+        local TabTextSize = 14;
+        local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, TabTextSize);
 
         local TabButton = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(0, TabButtonWidth + 8 + 4, 1, 0);
+            Size = UDim2.new(0, math.max(TabButtonWidth + 28, 58), 1, 0);
             ZIndex = 1;
             Parent = TabArea;
         });
@@ -4270,7 +4271,9 @@ end;
         local TabButtonLabel = Library:CreateLabel({
             Position = UDim2.new(0, 0, 0, 0);
             Size = UDim2.new(1, 0, 1, -1);
+            TextSize = TabTextSize;
             Text = Name;
+            TextXAlignment = Enum.TextXAlignment.Center;
             ZIndex = 1;
             Parent = TabButton;
         });
