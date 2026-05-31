@@ -31,11 +31,11 @@ local Library = {
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
-    MainColor = Color3.fromRGB(15, 15, 15);
-    BackgroundColor = Color3.fromRGB(18, 18, 18);
-    AccentColor = Color3.fromRGB(0, 85, 255);
-    OutlineColor = Color3.fromRGB(46, 46, 46);
-    RiskColor = Color3.fromRGB(255, 50, 50),
+    MainColor = Color3.fromRGB(14, 12, 12);
+    BackgroundColor = Color3.fromRGB(14, 12, 12);
+    AccentColor = Color3.fromRGB(119, 150, 214);
+    OutlineColor = Color3.fromRGB(26, 21, 21);
+    RiskColor = Color3.fromRGB(255, 50, 500),
 
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code,
@@ -43,8 +43,8 @@ local Library = {
     -- Glow effect settings
     GlowEnabled = true;
     GlowColor = Color3.fromRGB(0, 85, 255);
-    GlowTransparency = 0.45;
-    GlowSize = 36;
+    GlowTransparency = 0.5;
+    GlowSize = 45;
     GlowColorMatchAccent = true;
 
     OpenedFrames = {};
