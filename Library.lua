@@ -1352,7 +1352,7 @@ Library:Create(DisplayInner, {
         local PickOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
             BorderColor3 = Color3.new(0, 0, 0);
-            Size = UDim2.new(0, 28, 0, 15);
+            Size = UDim2.new(0, 34, 0, 15);
             ZIndex = 6;
             Parent = ToggleLabel;
         });
@@ -1380,7 +1380,7 @@ Library:Create(DisplayInner, {
             Size = UDim2.new(1, 0, 1, 0);
             TextSize = 13;
             Text = NormalizeKey(Info.Default);
-            TextWrapped = true;
+            TextWrapped = false;
             ZIndex = 8;
             Parent = PickInner;
         });
