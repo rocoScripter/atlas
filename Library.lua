@@ -3924,8 +3924,8 @@ end;
 
 function Library:UpdateNotifications()
     local Notifications = Library.Notifications or {};
-    local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080);
-    local BaseY = ViewportSize.Y * 0.88;
+    local BaseX = 70;
+    local BaseY = 20;
 
     if #Notifications > 6 then
         Notifications[1]:Dismiss();
@@ -3933,8 +3933,7 @@ function Library:UpdateNotifications()
 
     for Idx, Notification in ipairs(Notifications) do
         if Notification.Active and Notification.Frame then
-            local Width = Notification.Frame.Size.X.Offset;
-            local TargetPosition = UDim2.fromOffset((ViewportSize.X * 0.5) - (Width * 0.5), BaseY - (Idx * 29));
+            local TargetPosition = UDim2.fromOffset(BaseX, BaseY + ((Idx - 1) * 46));
 
             TweenService:Create(Notification.Frame, TweenInfo.new(0.14, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
                 Position = TargetPosition
@@ -3970,81 +3969,61 @@ function Library:Notify(Text, TypeOrTime, Time)
 
     Duration = math.clamp(Duration, 0.5, 7);
 
-    local TextWidth = Library:GetTextBounds(Text, Library.Font, 12);
-    local Width = math.max(96, TextWidth + 34);
-    local Height = 24;
-    local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080);
+    local TextWidth = Library:GetTextBounds(Text, Enum.Font.GothamBold, 13);
+    local Width = math.max(150, TextWidth + 44);
+    local Height = 38;
 
     local Frame = Library:Create('Frame', {
-        BackgroundColor3 = Library.BackgroundColor;
+        BackgroundColor3 = Color3.fromRGB(8, 10, 14);
         BackgroundTransparency = 1;
         BorderSizePixel = 0;
-        ClipsDescendants = false;
-        Position = UDim2.fromOffset((ViewportSize.X * 0.5) - (Width * 0.5), ViewportSize.Y * 0.88 + 12);
+        ClipsDescendants = true;
+        Position = UDim2.fromOffset(50, 20);
         Size = UDim2.fromOffset(Width, Height);
         ZIndex = 1101;
         Parent = Library.NotificationArea;
     });
 
-    Library:AddToRegistry(Frame, {
-        BackgroundColor3 = 'BackgroundColor';
-    }, true);
-
     Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 7);
+        CornerRadius = UDim.new(0, 6);
         Parent = Frame;
     });
 
-    local Shadow = Library:Create('ImageLabel', {
-        AnchorPoint = Vector2.new(0.5, 0.5);
-        BackgroundTransparency = 1;
-        Image = 'http://www.roblox.com/asset/?id=18245826428';
-        ImageColor3 = Color;
-        ImageTransparency = 1;
-        Position = UDim2.fromScale(0.5, 0.5);
-        Size = UDim2.new(1, 18, 1, 18);
-        ScaleType = Enum.ScaleType.Slice;
-        SliceCenter = Rect.new(Vector2.new(21, 21), Vector2.new(79, 79));
-        ZIndex = 1100;
-        Parent = Frame;
-    });
-
-    local Icon = Library:Create('Frame', {
-        BackgroundColor3 = Color;
+    local Dot = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(91, 161, 255);
         BackgroundTransparency = 1;
         BorderSizePixel = 0;
-        Position = UDim2.fromOffset(6, 6);
-        Size = UDim2.fromOffset(12, 12);
+        Position = UDim2.fromOffset(14, 17);
+        Size = UDim2.fromOffset(5, 5);
         ZIndex = 1102;
         Parent = Frame;
     });
 
     Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 4);
-        Parent = Icon;
+        CornerRadius = UDim.new(1, 0);
+        Parent = Dot;
     });
 
-    local Label = Library:CreateLabel({
-        Position = UDim2.fromOffset(26, 4);
-        Size = UDim2.new(1, -31, 1, -8);
+    local Label = Library:Create('TextLabel', {
+        BackgroundTransparency = 1;
+        Font = Enum.Font.GothamBold;
+        Position = UDim2.fromOffset(30, 0);
+        Size = UDim2.new(1, -40, 1, 0);
         Text = Text;
         TextTransparency = 1;
-        TextSize = 12;
+        TextColor3 = Color3.fromRGB(235, 238, 244);
+        TextSize = 13;
         TextXAlignment = Enum.TextXAlignment.Left;
+        TextYAlignment = Enum.TextYAlignment.Center;
+        TextTruncate = Enum.TextTruncate.AtEnd;
         ZIndex = 1102;
         Parent = Frame;
-    }, true);
-    local LabelStroke = Label:FindFirstChildOfClass('UIStroke');
-
-    if LabelStroke then
-        LabelStroke.Transparency = 1;
-    end;
+    });
 
     local Notification = {
         Active = true;
         Frame = Frame;
-        Shadow = Shadow;
-        Icon = Icon;
+        Dot = Dot;
         Label = Label;
     };
 
@@ -4065,20 +4044,15 @@ function Library:Notify(Text, TypeOrTime, Time)
         TweenService:Create(Frame, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
             BackgroundTransparency = 1
         }):Play();
-        TweenService:Create(Shadow, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
-            ImageTransparency = 1
+        TweenService:Create(Frame, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            Position = Frame.Position - UDim2.fromOffset(20, 0)
         }):Play();
-        TweenService:Create(Icon, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+        TweenService:Create(Dot, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
             BackgroundTransparency = 1
         }):Play();
         TweenService:Create(Label, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
             TextTransparency = 1
         }):Play();
-        if LabelStroke then
-            TweenService:Create(LabelStroke, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
-                Transparency = 1
-            }):Play();
-        end;
 
         task.delay(0.12, function()
             Frame:Destroy();
@@ -4090,22 +4064,14 @@ function Library:Notify(Text, TypeOrTime, Time)
     Library:UpdateNotifications();
 
     TweenService:Create(Frame, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 0.11
+        BackgroundTransparency = 0.08
     }):Play();
-    TweenService:Create(Shadow, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
-        ImageTransparency = 0.84
-    }):Play();
-    TweenService:Create(Icon, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+    TweenService:Create(Dot, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
         BackgroundTransparency = 0
     }):Play();
     TweenService:Create(Label, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
         TextTransparency = 0
     }):Play();
-    if LabelStroke then
-        TweenService:Create(LabelStroke, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
-            Transparency = 0
-        }):Play();
-    end;
 
     task.delay(Duration, function()
         Notification:Dismiss();
