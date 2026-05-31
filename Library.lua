@@ -1566,6 +1566,32 @@ function KeyPicker:Update()
 
         local Picking = false;
 
+        local function SetParentToggleHoverIgnored(Ignored)
+            if ParentObj.Type ~= 'Toggle' then
+                return;
+            end;
+
+            ParentObj.IgnoreToggleHover = Ignored;
+
+            if Ignored and ParentObj.ToggleOuter then
+                TweenService:Create(ParentObj.ToggleOuter, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BorderColor3 = Library.Black
+                }):Play();
+
+                if Library.RegistryMap[ParentObj.ToggleOuter] then
+                    Library.RegistryMap[ParentObj.ToggleOuter].Properties.BorderColor3 = 'Black';
+                end;
+            end;
+        end;
+
+        PickOuter.MouseEnter:Connect(function()
+            SetParentToggleHoverIgnored(true);
+        end);
+
+        PickOuter.MouseLeave:Connect(function()
+            SetParentToggleHoverIgnored(false);
+        end);
+
         PickOuter.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
                 if ParentObj.Type == 'Toggle' then
@@ -2251,10 +2277,25 @@ function Button:AddButton(...)
         UpdateToggleRowWidth();
         Container:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdateToggleRowWidth);
 
-        Library:OnHighlight(ToggleRegion, ToggleOuter,
-            { BorderColor3 = 'AccentColor' },
-            { BorderColor3 = 'Black' }
-        );
+        ToggleRegion.MouseEnter:Connect(function()
+            if Toggle.IgnoreToggleHover then
+                return;
+            end;
+
+            TweenService:Create(ToggleOuter, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BorderColor3 = Library.AccentColor
+            }):Play();
+
+            Library.RegistryMap[ToggleOuter].Properties.BorderColor3 = 'AccentColor';
+        end);
+
+        ToggleRegion.MouseLeave:Connect(function()
+            TweenService:Create(ToggleOuter, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BorderColor3 = Library.Black
+            }):Play();
+
+            Library.RegistryMap[ToggleOuter].Properties.BorderColor3 = 'Black';
+        end);
 
         function Toggle:UpdateColors()
             Toggle:Display();
@@ -2324,6 +2365,7 @@ end;
 
         Toggle.TextLabel = ToggleLabel;
         Toggle.Container = Container;
+        Toggle.ToggleOuter = ToggleOuter;
         setmetatable(Toggle, BaseAddons);
 
         Toggles[Idx] = Toggle;
