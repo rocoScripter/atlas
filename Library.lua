@@ -3696,18 +3696,12 @@ end;
 do
     Library.NotificationArea = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Position = UDim2.new(0, 0, 0, 40);
-        Size = UDim2.new(0, 300, 0, 200);
+        Position = UDim2.fromScale(0, 0);
+        Size = UDim2.fromScale(1, 1);
         ZIndex = 100;
         Parent = ScreenGui;
     });
-
-    Library:Create('UIListLayout', {
-        Padding = UDim.new(0, 4);
-        FillDirection = Enum.FillDirection.Vertical;
-        SortOrder = Enum.SortOrder.LayoutOrder;
-        Parent = Library.NotificationArea;
-    });
+    Library.Notifications = {};
 
     local WatermarkOuter = Library:Create('Frame', {
         BorderColor3 = Color3.new(0, 0, 0);
@@ -3928,94 +3922,193 @@ function Library:SetWatermark(Text)
     end
 end;
 
-function Library:Notify(Text, Time)
-    local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
+function Library:UpdateNotifications()
+    local Notifications = Library.Notifications or {};
+    local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080);
+    local BaseY = ViewportSize.Y * 0.88;
 
-    YSize = YSize + 7
+    if #Notifications > 6 then
+        Notifications[1]:Dismiss();
+    end;
 
-    local NotifyOuter = Library:Create('Frame', {
-        BorderColor3 = Color3.new(0, 0, 0);
-        Position = UDim2.new(0, 100, 0, 10);
-        Size = UDim2.new(0, 0, 0, YSize);
-        ClipsDescendants = true;
-        ZIndex = 100;
+    for Idx, Notification in ipairs(Notifications) do
+        if Notification.Active and Notification.Frame then
+            local Width = Notification.Frame.Size.X.Offset;
+            local TargetPosition = UDim2.fromOffset((ViewportSize.X * 0.5) - (Width * 0.5), BaseY - (Idx * 29));
+
+            TweenService:Create(Notification.Frame, TweenInfo.new(0.14, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+                Position = TargetPosition
+            }):Play();
+        end;
+    end;
+end;
+
+function Library:Notify(Text, TypeOrTime, Time)
+    Text = tostring(Text or '');
+
+    local Duration = 2;
+    local Color = Library.AccentColor;
+    local NotificationType = nil;
+
+    if typeof(TypeOrTime) == 'Color3' then
+        Color = TypeOrTime;
+        Duration = typeof(Time) == 'number' and Time or Duration;
+    elseif typeof(TypeOrTime) == 'number' and typeof(Time) == 'number' then
+        NotificationType = TypeOrTime;
+        Duration = Time;
+    elseif typeof(TypeOrTime) == 'number' then
+        Duration = TypeOrTime;
+    end;
+
+    if NotificationType == 1 then
+        Color = Color3.fromRGB(174, 255, 0);
+    elseif NotificationType == 2 then
+        Color = Color3.fromRGB(255, 225, 0);
+    elseif NotificationType == 3 or NotificationType == 4 then
+        Color = Color3.fromRGB(255, 60, 63);
+    end;
+
+    Duration = math.clamp(Duration, 0.5, 7);
+
+    local TextWidth = Library:GetTextBounds(Text, Library.Font, 12);
+    local Width = math.max(96, TextWidth + 34);
+    local Height = 24;
+    local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080);
+
+    local Frame = Library:Create('Frame', {
+        BackgroundColor3 = Library.BackgroundColor;
+        BackgroundTransparency = 1;
+        BorderSizePixel = 0;
+        ClipsDescendants = false;
+        Position = UDim2.fromOffset((ViewportSize.X * 0.5) - (Width * 0.5), ViewportSize.Y * 0.88 + 12);
+        Size = UDim2.fromOffset(Width, Height);
+        ZIndex = 1101;
         Parent = Library.NotificationArea;
     });
 
-    local NotifyInner = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Size = UDim2.new(1, 0, 1, 0);
-        ZIndex = 101;
-        Parent = NotifyOuter;
-    });
-
-    Library:AddToRegistry(NotifyInner, {
-        BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
+    Library:AddToRegistry(Frame, {
+        BackgroundColor3 = 'BackgroundColor';
     }, true);
 
-    local InnerFrame = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(1, 1, 1);
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 7);
+        Parent = Frame;
+    });
+
+    local Shadow = Library:Create('ImageLabel', {
+        AnchorPoint = Vector2.new(0.5, 0.5);
+        BackgroundTransparency = 1;
+        Image = 'http://www.roblox.com/asset/?id=18245826428';
+        ImageColor3 = Color;
+        ImageTransparency = 1;
+        Position = UDim2.fromScale(0.5, 0.5);
+        Size = UDim2.new(1, 18, 1, 18);
+        ScaleType = Enum.ScaleType.Slice;
+        SliceCenter = Rect.new(Vector2.new(21, 21), Vector2.new(79, 79));
+        ZIndex = 1100;
+        Parent = Frame;
+    });
+
+    local Icon = Library:Create('Frame', {
+        BackgroundColor3 = Color;
+        BackgroundTransparency = 1;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 1, 0, 1);
-        Size = UDim2.new(1, -2, 1, -2);
-        ZIndex = 102;
-        Parent = NotifyInner;
+        Position = UDim2.fromOffset(6, 6);
+        Size = UDim2.fromOffset(12, 12);
+        ZIndex = 1102;
+        Parent = Frame;
     });
 
-    local Gradient = Library:Create('UIGradient', {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
-            ColorSequenceKeypoint.new(1, Library.MainColor),
-        });
-        Rotation = -90;
-        Parent = InnerFrame;
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 4);
+        Parent = Icon;
     });
 
-    Library:AddToRegistry(Gradient, {
-        Color = function()
-            return ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
-                ColorSequenceKeypoint.new(1, Library.MainColor),
-            });
-        end
-    });
-
-    local NotifyLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 4, 0, 0);
-        Size = UDim2.new(1, -4, 1, 0);
+    local Label = Library:CreateLabel({
+        Position = UDim2.fromOffset(26, 4);
+        Size = UDim2.new(1, -31, 1, -8);
         Text = Text;
+        TextTransparency = 1;
+        TextSize = 12;
         TextXAlignment = Enum.TextXAlignment.Left;
-        TextSize = 14;
-        ZIndex = 103;
-        Parent = InnerFrame;
-    });
-
-    local LeftColor = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(0, -1, 0, -1);
-        Size = UDim2.new(0, 3, 1, 2);
-        ZIndex = 104;
-        Parent = NotifyOuter;
-    });
-
-    Library:AddToRegistry(LeftColor, {
-        BackgroundColor3 = 'AccentColor';
+        ZIndex = 1102;
+        Parent = Frame;
     }, true);
+    local LabelStroke = Label:FindFirstChildOfClass('UIStroke');
 
-    pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
+    if LabelStroke then
+        LabelStroke.Transparency = 1;
+    end;
 
-    task.spawn(function()
-        wait(Time or 5);
+    local Notification = {
+        Active = true;
+        Frame = Frame;
+        Shadow = Shadow;
+        Icon = Icon;
+        Label = Label;
+    };
 
-        pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, 0, 0, YSize), 'Out', 'Quad', 0.4, true);
+    function Notification:Dismiss()
+        if not self.Active then
+            return;
+        end;
 
-        wait(0.4);
+        self.Active = false;
 
-        NotifyOuter:Destroy();
+        for Idx, Item in ipairs(Library.Notifications) do
+            if Item == self then
+                table.remove(Library.Notifications, Idx);
+                break;
+            end;
+        end;
+
+        TweenService:Create(Frame, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 1
+        }):Play();
+        TweenService:Create(Shadow, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            ImageTransparency = 1
+        }):Play();
+        TweenService:Create(Icon, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 1
+        }):Play();
+        TweenService:Create(Label, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            TextTransparency = 1
+        }):Play();
+        if LabelStroke then
+            TweenService:Create(LabelStroke, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+                Transparency = 1
+            }):Play();
+        end;
+
+        task.delay(0.12, function()
+            Frame:Destroy();
+            Library:UpdateNotifications();
+        end);
+    end;
+
+    table.insert(Library.Notifications, Notification);
+    Library:UpdateNotifications();
+
+    TweenService:Create(Frame, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.11
+    }):Play();
+    TweenService:Create(Shadow, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+        ImageTransparency = 0.84
+    }):Play();
+    TweenService:Create(Icon, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0
+    }):Play();
+    TweenService:Create(Label, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+        TextTransparency = 0
+    }):Play();
+    if LabelStroke then
+        TweenService:Create(LabelStroke, TweenInfo.new(0.12, Enum.EasingStyle.Circular, Enum.EasingDirection.Out), {
+            Transparency = 0
+        }):Play();
+    end;
+
+    task.delay(Duration, function()
+        Notification:Dismiss();
     end);
 end;
 
