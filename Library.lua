@@ -1353,7 +1353,7 @@ Library:Create(DisplayInner, {
             BackgroundColor3 = Color3.new(0, 0, 0);
             BorderColor3 = Color3.new(0, 0, 0);
             Size = UDim2.new(0, 34, 0, 15);
-            ZIndex = 6;
+            ZIndex = 20;
             Parent = ToggleLabel;
         });
 
@@ -1362,7 +1362,7 @@ Library:Create(DisplayInner, {
             BorderColor3 = Library.OutlineColor;
             BorderMode = Enum.BorderMode.Inset;
             Size = UDim2.new(1, 0, 1, 0);
-            ZIndex = 7;
+            ZIndex = 21;
             Parent = PickOuter;
         });
 
@@ -1381,7 +1381,7 @@ Library:Create(DisplayInner, {
             TextSize = 13;
             Text = NormalizeKey(Info.Default);
             TextWrapped = false;
-            ZIndex = 8;
+            ZIndex = 22;
             Parent = PickInner;
         });
 
@@ -1568,6 +1568,13 @@ function KeyPicker:Update()
 
         PickOuter.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
+                if ParentObj.Type == 'Toggle' then
+                    ParentObj.IgnoreNextToggleClick = true;
+                    task.delay(0.1, function()
+                        ParentObj.IgnoreNextToggleClick = false;
+                    end);
+                end;
+
                 Picking = true;
 
                 DisplayLabel.Text = '';
@@ -1616,6 +1623,13 @@ function KeyPicker:Update()
                     Event:Disconnect();
                 end);
             elseif Input.UserInputType == Enum.UserInputType.MouseButton2 and not Library:MouseIsOverOpenedFrame() then
+                if ParentObj.Type == 'Toggle' then
+                    ParentObj.IgnoreNextToggleClick = true;
+                    task.delay(0.1, function()
+                        ParentObj.IgnoreNextToggleClick = false;
+                    end);
+                end;
+
                 ModeSelectOuter.Visible = true;
             end;
         end);
@@ -2288,6 +2302,11 @@ end;
 
         ToggleRegion.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
+                if Toggle.IgnoreNextToggleClick then
+                    Toggle.IgnoreNextToggleClick = false;
+                    return;
+                end;
+
                 Toggle:SetValue(not Toggle.Value) -- Why was it not like this from the start?
                 Library:AttemptSave();
             end;
